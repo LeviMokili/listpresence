@@ -83,31 +83,40 @@ function handleCategorieChange() {
 // ============================================================
 // CHARGEMENT DES EMPLOYÉS AVEC google.script.run
 // ============================================================
-function loadEmployees() {
-    showEmployeLoading(true);
-    employe.disabled = true;
-    
-    // Utiliser google.script.run pour appeler le backend
-    google.script.run
-        .withSuccessHandler(function(result) {
-            if (result.success && result.data) {
-                allEmployees = result.data;
-                populateEmployeeSelect(allEmployees);
-            } else {
-                showError("Erreur de chargement des employés");
-            }
-            showEmployeLoading(false);
-            employe.disabled = false;
-        })
-        .withFailureHandler(function(error) {
-            console.error("Erreur:", error);
-            showError("Impossible de charger la liste des employés. Vérifiez votre connexion.");
-            showEmployeLoading(false);
-            employe.disabled = false;
-        })
-        .getActiveEmployees(); // Appelle la fonction getActiveEmployees() dans Code.gs
+// ============================================================
+// CHARGEMENT DES EMPLOYÉS - VERSION PROXY CORS
+// ============================================================
+async function loadEmployees() {
+    try {
+        showEmployeLoading(true);
+        employe.disabled = true;
+        
+        // Utiliser le proxy CORS pour la requête GET
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(API_URL);
+        
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            allEmployees = result.data;
+            populateEmployeeSelect(allEmployees);
+        } else {
+            throw new Error(result.message || "Erreur de chargement");
+        }
+        
+    } catch (error) {
+        console.error("Erreur chargement employés:", error);
+        showError("Impossible de charger la liste des employés. Vérifiez votre connexion.");
+    } finally {
+        showEmployeLoading(false);
+        employe.disabled = false;
+    }
 }
-
 // ============================================================
 // AFFICHAGE DES EMPLOYÉS
 // ============================================================
@@ -160,7 +169,10 @@ function showEmployeLoading(loading) {
 // ============================================================
 // SOUMISSION DU FORMULAIRE AVEC google.script.run
 // ============================================================
-function handleSubmit() {
+// ============================================================
+// SOUMISSION DU FORMULAIRE - VERSION PROXY CORS
+// ============================================================
+async function handleSubmit() {
     if (isSubmitting) return;
     
     hideAllAlerts();
@@ -172,29 +184,48 @@ function handleSubmit() {
     
     setSubmittingState(true);
     
-    const data = {
-        categorie: categorie.value,
-        typePause: typePause.value || "",
-        departement: departement.value,
-        employeId: employe.value
-    };
-    
-    // Utiliser google.script.run pour appeler le backend
-    google.script.run
-        .withSuccessHandler(function(result) {
-            if (result.success) {
-                showSuccess(result);
-            } else {
-                showError(result.message || "Erreur lors de l'enregistrement");
+    try {
+        // Construire les paramètres
+        const params = new URLSearchParams({
+            action: 'save',
+            categorie: categorie.value,
+            typePause: typePause.value || '',
+            departement: departement.value,
+            employeId: employe.value
+        });
+        
+        const url = `${API_URL}?${params.toString()}`;
+        
+        // Utiliser un proxy CORS gratuit
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+        
+        console.log("Envoi via proxy:", proxyUrl);
+        
+        const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
             }
-            setSubmittingState(false);
-        })
-        .withFailureHandler(function(error) {
-            console.error("Erreur:", error);
-            showError("Une erreur est survenue. Veuillez réessayer.");
-            setSubmittingState(false);
-        })
-        .saveAttendance(data); // Appelle la fonction saveAttendance() dans Code.gs
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showSuccess(result);
+        } else {
+            showError(result.message || "Erreur lors de l'enregistrement");
+        }
+        
+    } catch (error) {
+        console.error("Erreur envoi:", error);
+        showError("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+        setSubmittingState(false);
+    }
 }
 
 // ============================================================
