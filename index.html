@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Système de Pointage</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Styles personnalisés -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light">
+        <div class="card shadow-lg border-0" style="max-width: 600px; width: 100%;">
+            <div class="card-body p-4 p-md-5">
+                
+                <!-- Logo/En-tête -->
+                <div class="text-center mb-4">
+                    <div class="company-logo mb-3">
+                        <i class="bi bi-building" style="font-size: 3rem; color: #0d6efd;"></i>
+                    </div>
+                    <h1 class="h3 fw-bold text-primary">SYSTÈME DE POINTAGE</h1>
+                    <p class="text-muted small">Enregistrez votre présence en quelques secondes</p>
+                </div>
+                
+                <!-- Message d'erreur général -->
+                <div id="errorAlert" class="alert alert-danger alert-dismissible fade d-none" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <span id="errorMessage"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <!-- Message de succès -->
+                <div id="successAlert" class="alert alert-success alert-dismissible fade d-none" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <span id="successMessage"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <!-- Formulaire -->
+                <form id="attendanceForm" novalidate>
+                    
+                    <!-- Étape 1: Catégorie -->
+                    <div class="mb-3">
+                        <label for="categorie" class="form-label fw-semibold">
+                            <i class="bi bi-tag me-1"></i>Catégorie
+                        </label>
+                        <select id="categorie" class="form-select form-select-lg" required>
+                            <option value="">Sélectionner catégorie</option>
+                            <option value="ARRIVÉE">ARRIVÉE</option>
+                            <option value="PAUSE">PAUSE</option>
+                            <option value="DÉPART">DÉPART</option>
+                        </select>
+                        <div class="invalid-feedback">Veuillez sélectionner une catégorie</div>
+                    </div>
+                    
+                    <!-- Étape 1bis: Type de pause (affiché uniquement si PAUSE) -->
+                    <div id="pauseTypeContainer" class="mb-3 d-none">
+                        <label for="typePause" class="form-label fw-semibold">
+                            <i class="bi bi-clock me-1"></i>Type de pause
+                        </label>
+                        <select id="typePause" class="form-select form-select-lg">
+                            <option value="">Sélectionner le type de pause</option>
+                            <option value="HEURE DE SORTIE">HEURE DE SORTIE</option>
+                            <option value="HEURE D'ENTRÉE">HEURE D'ENTRÉE</option>
+                        </select>
+                        <div class="invalid-feedback">Veuillez sélectionner un type de pause</div>
+                    </div>
+                    
+                    <!-- Étape 2: Département -->
+                    <div class="mb-3">
+                        <label for="departement" class="form-label fw-semibold">
+                            <i class="bi bi-building me-1"></i>Département
+                        </label>
+                        <select id="departement" class="form-select form-select-lg" required>
+                            <option value="">Choisir département</option>
+                            <option value="SECRETARIAT">SECRETARIAT</option>
+                            <option value="BUREAU DE PERSONNEL">BUREAU DE PERSONNEL</option>
+                            <option value="INSPECTION">INSPECTION</option>
+                            <option value="TECHNIQUE">TECHNIQUE</option>
+                        </select>
+                        <div class="invalid-feedback">Veuillez sélectionner un département</div>
+                    </div>
+                    
+                    <!-- Étape 3: Employé -->
+                    <div class="mb-4">
+                        <label for="employe" class="form-label fw-semibold">
+                            <i class="bi bi-person me-1"></i>Employé
+                        </label>
+                        <select id="employe" class="form-select form-select-lg" required>
+                            <option value="">Sélectionner employé</option>
+                        </select>
+                        <div class="invalid-feedback">Veuillez sélectionner un employé</div>
+                        <div id="employeLoading" class="text-muted small mt-1">
+                            <i class="bi bi-arrow-repeat spinner-border-sm me-1"></i>Chargement des employés...
+                        </div>
+                    </div>
+                    
+                    <!-- Bouton d'enregistrement -->
+                    <button type="submit" id="submitBtn" class="btn btn-primary btn-lg w-100 py-3 fw-bold">
+                        <i class="bi bi-check-circle me-2"></i>ENREGISTRER LE POINTAGE
+                    </button>
+                    
+                    <!-- Spinner de chargement (caché par défaut) -->
+                    <div id="loadingSpinner" class="text-center mt-3 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Enregistrement en cours...</span>
+                        </div>
+                        <p class="text-muted small mt-1">Enregistrement en cours...</p>
+                    </div>
+                    
+                </form>
+                
+                <!-- Confirmation après succès -->
+                <div id="confirmationContainer" class="d-none mt-4 p-3 bg-success bg-opacity-10 rounded-3">
+                    <div class="text-center">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                        <h4 class="text-success mt-2">✓ POINTAGE ENREGISTRÉ</h4>
+                        <hr>
+                        <div class="text-start small">
+                            <p><strong>Employé :</strong> <span id="confEmploye"></span></p>
+                            <p><strong>Département :</strong> <span id="confDepartement"></span></p>
+                            <p><strong>Catégorie :</strong> <span id="confCategorie"></span></p>
+                            <p><strong>Heure :</strong> <span id="confHeure"></span></p>
+                        </div>
+                        <button id="newPointageBtn" class="btn btn-outline-primary mt-2">
+                            <i class="bi bi-plus-circle me-1"></i>NOUVEAU POINTAGE
+                        </button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script personnalisé -->
+    <script src="script.js"></script>
+</body>
+</html>

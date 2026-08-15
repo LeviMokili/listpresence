@@ -1,0 +1,151 @@
+/* ============================================================
+   STYLES PERSONNALISÉS
+   ============================================================ */
+
+/* Reset et base */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f8f9fa;
+}
+
+/* Carte principale */
+.card {
+    border-radius: 20px !important;
+    margin: 1rem;
+}
+
+/* Logo entreprise */
+.company-logo i {
+    display: inline-block;
+    background: #e9f0ff;
+    padding: 15px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.15);
+}
+
+/* Champs de formulaire - grand pour mobile */
+.form-select-lg,
+.form-control-lg {
+    font-size: 1.1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    min-height: 56px;
+    touch-action: manipulation;
+}
+
+.form-select-lg option {
+    padding: 8px;
+}
+
+/* Labels */
+.form-label {
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+    color: #2d3748;
+}
+
+/* Bouton principal */
+.btn-lg {
+    border-radius: 12px;
+    font-size: 1.1rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn-lg:active {
+    transform: scale(0.98);
+}
+
+/* Messages d'erreur */
+.invalid-feedback {
+    font-size: 0.9rem;
+    margin-top: 0.3rem;
+}
+
+/* Alerte de succès */
+#confirmationContainer {
+    border-left: 4px solid #198754;
+}
+
+/* Responsive - mobile first */
+@media (max-width: 576px) {
+    .card {
+        margin: 0.5rem;
+        border-radius: 16px !important;
+    }
+    
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .form-select-lg,
+    .form-control-lg {
+        font-size: 1rem;
+        padding: 0.7rem 0.9rem;
+        min-height: 50px;
+    }
+    
+    .btn-lg {
+        font-size: 1rem;
+        padding: 0.8rem 1rem;
+    }
+    
+    h1.h3 {
+        font-size: 1.4rem;
+    }
+}
+
+/* Tablettes et petits écrans */
+@media (min-width: 576px) and (max-width: 992px) {
+    .card {
+        max-width: 90% !important;
+    }
+}
+
+/* Grands écrans */
+@media (min-width: 992px) {
+    .card {
+        max-width: 550px !important;
+    }
+}
+
+/* Accessibilité - focus visible */
+select:focus,
+button:focus {
+    outline: 3px solid rgba(13, 110, 253, 0.4);
+    outline-offset: 2px;
+}
+
+/* État désactivé du bouton */
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Spinner personnalisé */
+.spinner-border-sm {
+    width: 1.2rem;
+    height: 1.2rem;
+    border-width: 0.15em;
+}
+
+/* Animation pour le chargement */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#confirmationContainer {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* État de validation Bootstrap personnalisé */
+.was-validated .form-select:invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+    padding-right: 2.5rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
