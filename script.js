@@ -2,6 +2,7 @@
 // CONFIGURATION
 // ============================================================
 const API_URL = "https://script.google.com/macros/s/AKfycbzSDflu9PZjlqZyJYJVQyj4S2XFesu-kfdGVb3Sv0wtRTAW7-dRo07sN-5B9FpLq19grQ/exec";
+
 // ============================================================
 // ÉTAT DE L'APPLICATION
 // ============================================================
@@ -80,35 +81,31 @@ function handleCategorieChange() {
 }
 
 // ============================================================
-// CHARGEMENT DES EMPLOYÉS
+// CHARGEMENT DES EMPLOYÉS AVEC google.script.run
 // ============================================================
-async function loadEmployees() {
-    try {
-        showEmployeLoading(true);
-        employe.disabled = true;
-        
-        const response = await fetch(API_URL);
-        
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success && result.data) {
-            allEmployees = result.data;
-            populateEmployeeSelect(allEmployees);
-        } else {
-            throw new Error(result.message || "Erreur de chargement");
-        }
-        
-    } catch (error) {
-        console.error("Erreur chargement employés:", error);
-        showError("Impossible de charger la liste des employés. Vérifiez votre connexion.");
-    } finally {
-        showEmployeLoading(false);
-        employe.disabled = false;
-    }
+function loadEmployees() {
+    showEmployeLoading(true);
+    employe.disabled = true;
+    
+    // Utiliser google.script.run pour appeler le backend
+    google.script.run
+        .withSuccessHandler(function(result) {
+            if (result.success && result.data) {
+                allEmployees = result.data;
+                populateEmployeeSelect(allEmployees);
+            } else {
+                showError("Erreur de chargement des employés");
+            }
+            showEmployeLoading(false);
+            employe.disabled = false;
+        })
+        .withFailureHandler(function(error) {
+            console.error("Erreur:", error);
+            showError("Impossible de charger la liste des employés. Vérifiez votre connexion.");
+            showEmployeLoading(false);
+            employe.disabled = false;
+        })
+        .getActiveEmployees(); // Appelle la fonction getActiveEmployees() dans Code.gs
 }
 
 // ============================================================
@@ -161,9 +158,9 @@ function showEmployeLoading(loading) {
 }
 
 // ============================================================
-// SOUMISSION DU FORMULAIRE (VERSION GET - CORRIGÉE POUR CORS)
+// SOUMISSION DU FORMULAIRE AVEC google.script.run
 // ============================================================
-async function handleSubmit() {
+function handleSubmit() {
     if (isSubmitting) return;
     
     hideAllAlerts();
@@ -175,45 +172,29 @@ async function handleSubmit() {
     
     setSubmittingState(true);
     
-    try {
-        // Construire l'URL avec les paramètres pour la méthode GET
-        const params = new URLSearchParams({
-            action: 'save',
-            categorie: categorie.value,
-            typePause: typePause.value || '',
-            departement: departement.value,
-            employeId: employe.value
-        });
-        
-        const url = `${API_URL}?${params.toString()}`;
-        
-        console.log("Envoi vers:", url); // Pour le débogage
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
+    const data = {
+        categorie: categorie.value,
+        typePause: typePause.value || "",
+        departement: departement.value,
+        employeId: employe.value
+    };
+    
+    // Utiliser google.script.run pour appeler le backend
+    google.script.run
+        .withSuccessHandler(function(result) {
+            if (result.success) {
+                showSuccess(result);
+            } else {
+                showError(result.message || "Erreur lors de l'enregistrement");
             }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showSuccess(result);
-        } else {
-            showError(result.message || "Erreur lors de l'enregistrement");
-        }
-        
-    } catch (error) {
-        console.error("Erreur envoi:", error);
-        showError("Une erreur est survenue. Veuillez réessayer.");
-    } finally {
-        setSubmittingState(false);
-    }
+            setSubmittingState(false);
+        })
+        .withFailureHandler(function(error) {
+            console.error("Erreur:", error);
+            showError("Une erreur est survenue. Veuillez réessayer.");
+            setSubmittingState(false);
+        })
+        .saveAttendance(data); // Appelle la fonction saveAttendance() dans Code.gs
 }
 
 // ============================================================
