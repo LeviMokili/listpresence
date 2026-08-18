@@ -1,8 +1,8 @@
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbzT8lFBH0XxOKfwOB1T5HRouMSgHhvn4xq9GOd7tsHzkgEm9DZMga8_R2wN0aeYAx0w6A/exec";
-const TIMEZONE = "Africa/Kisangani"; // Explicitly set timezone
+const API_URL = "https://script.google.com/macros/s/AKfycbzyOQiQT6ZWTZM1PkP5Nn5ODYkhTwlQ5GLq6akNCcDoANWTK8j_AKjmR-qfDqvT-qR72w/exec";
+const TIMEZONE = "Africa/Lubumbashi";// Explicitly set timezone
 
 // ============================================================
 // ÉTAT DE L'APPLICATION
