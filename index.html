@@ -145,52 +145,6 @@
     <script src="script.js"></script>
     <!-- Google Apps Script -->
 <!-- Google Apps Script -->
-<script>
-    // Ce script permet à google.script.run de fonctionner
-    window.google = window.google || {};
-    window.google.script = window.google.script || {
-        run: {
-            withSuccessHandler: function(callback) {
-                this.success = callback;
-                return this;
-            },
-            withFailureHandler: function(callback) {
-                this.failure = callback;
-                return this;
-            },
-            getActiveEmployees: function() {
-                // Utilise la nouvelle URL
-                fetch('https://script.google.com/macros/s/AKfycbzIRnriDVjbzxMQvjdfvxg7bvNp8TTeaTDlfmtVueYk-E81HqRtmffZGZ8rO1_BoaOD/exec')
-                    .then(r => r.json())
-                    .then(result => {
-                        if (this.success) this.success(result);
-                    })
-                    .catch(error => {
-                        if (this.failure) this.failure(error);
-                    });
-                return this;
-            },
-            saveAttendance: function(data) {
-                const params = new URLSearchParams({
-                    action: 'save',
-                    categorie: data.categorie,
-                    typePause: data.typePause || '',
-                    departement: data.departement,
-                    employeId: data.employeId
-                });
-                // Utilise la nouvelle URL
-                fetch('https://script.google.com/macros/s/AKfycbzIRnriDVjbzxMQvjdfvxg7bvNp8TTeaTDlfmtVueYk-E81HqRtmffZGZ8rO1_BoaOD/exec?' + params.toString())
-                    .then(r => r.json())
-                    .then(result => {
-                        if (this.success) this.success(result);
-                    })
-                    .catch(error => {
-                        if (this.failure) this.failure(error);
-                    });
-                return this;
-            }
-        }
-    };
-</script>
+
 </body>
 </html>
