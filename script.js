@@ -2,6 +2,7 @@
 // CONFIGURATION
 // ============================================================
 const API_URL = "https://script.google.com/macros/s/AKfycbwTFzG9aIWt28rjCddfj54XlXeMFW4mbrOAGAjp62W0XFo0Pb061ATLeqXCVBZFNmpurw/exec";
+const TIMEZONE = "Africa/Kisangani"; 
 
 // ============================================================
 // ÉTAT DE L'APPLICATION
