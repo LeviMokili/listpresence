@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbynPQFWYJtNXvBz4mTYmtz2LcPXL3WP15DBvbTo2sre4NarcN0LYWjgOeESzNSh-dEcaw/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzT8lFBH0XxOKfwOB1T5HRouMSgHhvn4xq9GOd7tsHzkgEm9DZMga8_R2wN0aeYAx0w6A/exec";
 const TIMEZONE = "Africa/Kisangani"; // Explicitly set timezone
 
 // ============================================================
