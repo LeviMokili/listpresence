@@ -2,7 +2,7 @@
 // CONFIGURATION
 // ============================================================
 const API_URL = "https://script.google.com/macros/s/AKfycbzIRnriDVjbzxMQvjdfvxg7bvNp8TTeaTDlfmtVueYk-E81HqRtmffZGZ8rO1_BoaOD/exec";
-const TIMEZONE = "Africa/Lubumbashi";// Explicitly set timezone
+const TIMEZONE = "Africa/Lubumbashi";
 
 // ============================================================
 // ÉTAT DE L'APPLICATION
@@ -82,23 +82,27 @@ function handleCategorieChange() {
 }
 
 // ============================================================
-// CHARGEMENT DES EMPLOYÉS - VERSION PROXY CORS
+// CHARGEMENT DES EMPLOYÉS - DIRECT ACCESS (NO PROXY)
 // ============================================================
 async function loadEmployees() {
     try {
         showEmployeLoading(true);
         employe.disabled = true;
         
-        // Utiliser le proxy CORS pour la requête GET
-        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(API_URL);
-        
-        const response = await fetch(proxyUrl);
+        // DIRECT ACCESS - No proxy needed on office network
+        const response = await fetch(API_URL);
         
         if (!response.ok) {
             throw new Error(`Erreur HTTP: ${response.status}`);
         }
         
         const result = await response.json();
+        
+        // Check if access was denied
+        if (!result.success && result.error === "UNAUTHORIZED_IP") {
+            showAccessDenied(result.ip || "Inconnue");
+            return;
+        }
         
         if (result.success && result.data) {
             allEmployees = result.data;
@@ -109,11 +113,50 @@ async function loadEmployees() {
         
     } catch (error) {
         console.error("Erreur chargement employés:", error);
-        showError("Impossible de charger la liste des employés. Vérifiez votre connexion.");
+        // Check if it's a CORS error
+        if (error.message.includes("fetch") || error.message.includes("network")) {
+            showError("Impossible de contacter le serveur. Vérifiez votre connexion réseau.");
+        } else {
+            showError("Impossible de charger la liste des employés. Vérifiez votre connexion.");
+        }
     } finally {
         showEmployeLoading(false);
         employe.disabled = false;
     }
+}
+
+// ============================================================
+// SHOW ACCESS DENIED
+// ============================================================
+function showAccessDenied(ip) {
+    const form = document.getElementById("attendanceForm");
+    const container = form.parentElement;
+    
+    // Hide form
+    form.style.display = 'none';
+    
+    // Remove existing denied message if any
+    const existing = document.getElementById('accessDenied');
+    if (existing) existing.remove();
+    
+    // Create access denied message
+    const deniedDiv = document.createElement('div');
+    deniedDiv.id = 'accessDenied';
+    deniedDiv.className = 'text-center p-4';
+    deniedDiv.innerHTML = `
+        <i class="bi bi-wifi-off" style="font-size: 4rem; color: #dc3545;"></i>
+        <h4 class="text-danger mt-3">ACCÈS NON AUTORISÉ</h4>
+        <p class="text-muted">Ce système est accessible uniquement depuis le réseau WiFi du bureau.</p>
+        <p class="small text-muted">Veuillez vous connecter au WiFi de l'entreprise.</p>
+        <hr>
+        <p class="small text-muted">IP détectée: <strong>${ip || 'Inconnue'}</strong></p>
+        <p class="small text-muted">IPs autorisées: 192.168.0.x, 153.67.139.198</p>
+        <button class="btn btn-outline-primary mt-3" onclick="location.reload()">
+            <i class="bi bi-arrow-clockwise me-1"></i>Réessayer
+        </button>
+    `;
+    
+    container.appendChild(deniedDiv);
 }
 
 // ============================================================
@@ -159,14 +202,16 @@ function filterEmployees() {
 // ============================================================
 function showEmployeLoading(loading) {
     if (loading) {
-        employeLoading.classList.remove("d-none");
+        employeLoading.classList.add("show");
+        employeLoading.style.display = "block";
     } else {
-        employeLoading.classList.add("d-none");
+        employeLoading.classList.remove("show");
+        employeLoading.style.display = "none";
     }
 }
 
 // ============================================================
-// SOUMISSION DU FORMULAIRE - VERSION PROXY CORS
+// SOUMISSION DU FORMULAIRE - DIRECT ACCESS
 // ============================================================
 async function handleSubmit() {
     if (isSubmitting) return;
@@ -195,19 +240,15 @@ async function handleSubmit() {
             typePause: typePause.value || '',
             departement: departement.value,
             employeId: employe.value,
-            // Send client time for verification (optional)
             clientTime: kisanganiTime
         });
         
         const url = `${API_URL}?${params.toString()}`;
         
-        // Utiliser un proxy CORS
-        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-        
-        console.log("Envoi via proxy:", proxyUrl);
+        console.log("Envoi direct:", url);
         console.log("Heure Kisangani:", kisanganiTime);
         
-        const response = await fetch(proxyUrl, {
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -221,11 +262,14 @@ async function handleSubmit() {
         const result = await response.json();
         
         if (result.success) {
-            // Use the server's time if available, otherwise client time
             const displayTime = result.data?.heure || getCurrentKisanganiTime();
             showSuccess(result, displayTime);
         } else {
-            showError(result.message || "Erreur lors de l'enregistrement");
+            if (result.error === "UNAUTHORIZED_IP") {
+                showAccessDenied(result.ip);
+            } else {
+                showError(result.message || "Erreur lors de l'enregistrement");
+            }
         }
         
     } catch (error) {
@@ -360,6 +404,13 @@ function removeValidationStyles() {
 function resetForm() {
     form.reset();
     form.classList.remove("d-none");
+    form.style.display = 'block';
+    
+    // Remove access denied message if present
+    const deniedDiv = document.getElementById('accessDenied');
+    if (deniedDiv) {
+        deniedDiv.remove();
+    }
     
     pauseTypeContainer.classList.add("d-none");
     typePause.value = "";
