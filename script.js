@@ -1,8 +1,8 @@
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbzT8lFBH0XxOKfwOB1T5HRouMSgHhvn4xq9GOd7tsHzkgEm9DZMga8_R2wN0aeYAx0w6A/exec";
-const TIMEZONE = "Africa/Kisangani"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbynPQFWYJtNXvBz4mTYmtz2LcPXL3WP15DBvbTo2sre4NarcN0LYWjgOeESzNSh-dEcaw/exec";
+const TIMEZONE = "Africa/Kisangani"; // Explicitly set timezone
 
 // ============================================================
 // ÉTAT DE L'APPLICATION
@@ -82,9 +82,6 @@ function handleCategorieChange() {
 }
 
 // ============================================================
-// CHARGEMENT DES EMPLOYÉS AVEC google.script.run
-// ============================================================
-// ============================================================
 // CHARGEMENT DES EMPLOYÉS - VERSION PROXY CORS
 // ============================================================
 async function loadEmployees() {
@@ -118,6 +115,7 @@ async function loadEmployees() {
         employe.disabled = false;
     }
 }
+
 // ============================================================
 // AFFICHAGE DES EMPLOYÉS
 // ============================================================
@@ -168,9 +166,6 @@ function showEmployeLoading(loading) {
 }
 
 // ============================================================
-// SOUMISSION DU FORMULAIRE AVEC google.script.run
-// ============================================================
-// ============================================================
 // SOUMISSION DU FORMULAIRE - VERSION PROXY CORS
 // ============================================================
 async function handleSubmit() {
@@ -186,21 +181,31 @@ async function handleSubmit() {
     setSubmittingState(true);
     
     try {
+        // Get current time in Kisangani timezone
+        const now = new Date();
+        const kisanganiTime = now.toLocaleString("fr-FR", {
+            timeZone: TIMEZONE,
+            hour12: false
+        });
+        
         // Construire les paramètres
         const params = new URLSearchParams({
             action: 'save',
             categorie: categorie.value,
             typePause: typePause.value || '',
             departement: departement.value,
-            employeId: employe.value
+            employeId: employe.value,
+            // Send client time for verification (optional)
+            clientTime: kisanganiTime
         });
         
         const url = `${API_URL}?${params.toString()}`;
         
-        // Utiliser un proxy CORS gratuit
+        // Utiliser un proxy CORS
         const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
         
         console.log("Envoi via proxy:", proxyUrl);
+        console.log("Heure Kisangani:", kisanganiTime);
         
         const response = await fetch(proxyUrl, {
             method: 'GET',
@@ -216,7 +221,9 @@ async function handleSubmit() {
         const result = await response.json();
         
         if (result.success) {
-            showSuccess(result);
+            // Use the server's time if available, otherwise client time
+            const displayTime = result.data?.heure || getCurrentKisanganiTime();
+            showSuccess(result, displayTime);
         } else {
             showError(result.message || "Erreur lors de l'enregistrement");
         }
@@ -227,6 +234,20 @@ async function handleSubmit() {
     } finally {
         setSubmittingState(false);
     }
+}
+
+// ============================================================
+// GET CURRENT KISANGANI TIME
+// ============================================================
+function getCurrentKisanganiTime() {
+    const now = new Date();
+    return now.toLocaleTimeString("fr-FR", {
+        timeZone: TIMEZONE,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
 }
 
 // ============================================================
@@ -301,13 +322,13 @@ function showError(message) {
     errorAlert.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
-function showSuccess(result) {
+function showSuccess(result, displayTime) {
     const data = result.data;
     
     confEmploye.textContent = data.employe || "N/A";
     confDepartement.textContent = data.departement || "N/A";
     confCategorie.textContent = data.categorie || "N/A";
-    confHeure.textContent = data.heure || "N/A";
+    confHeure.textContent = displayTime || data.heure || "N/A";
     
     form.classList.add("d-none");
     confirmationContainer.classList.remove("d-none");
