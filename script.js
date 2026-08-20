@@ -1,7 +1,7 @@
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const API_URL = "https://script.google.com/macros/s/AKfycbzvqkWPD1M3ef8sqjsCkY9bBGe3s2cegi8RwOjtckZMPX0SlTJJv1K_d8D9C1c2dPO2/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzx5jNhC1I91R7FER4RGNeWNbl1Jt52h1fxKcePnqm5s5PPxO6tkjH5eP04fN86Lanz/exec";
 const TIMEZONE = "Africa/Lubumbashi";
 
 // ============================================================
